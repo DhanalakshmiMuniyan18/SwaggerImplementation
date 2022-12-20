@@ -48,7 +48,7 @@ public class OrderDeliveryTestController {
      */
     @Test
     public void statusUpdate() throws ExistedException, NotFoundException {
-        SuccessResponseDto SuccessResponseDto = new SuccessResponseDto(202,
+        SuccessResponseDto SuccessResponseDto = new SuccessResponseDto(200,
                 "Order Delivered Successfully");
         when(orderDeliveryService.statusUpdate(1)).thenReturn(SuccessResponseDto);
         assertEquals(200, SuccessResponseDto.getStatusCode());

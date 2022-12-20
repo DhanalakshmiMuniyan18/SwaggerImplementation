@@ -35,8 +35,8 @@ public class SwaggerConfiguration {
      */
     private ApiInfo apiInfo() {
         return new ApiInfo(
-                "Ideameds",
-                "This api provides Users to purchase a medicine",
+                "GroceryShop",
+                "This api provides Users to purchase a grocery items",
                 "1.0",
                 "T&C",
                 new Contact("dhana", "www.ideas2it.com", "dhanalakshmi@ideas2it.com"),
