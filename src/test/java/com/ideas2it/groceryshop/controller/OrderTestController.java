@@ -7,38 +7,26 @@ package com.ideas2it.groceryshop.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.ideas2it.groceryshop.dto.OrderDetailResponseDto;
 import com.ideas2it.groceryshop.dto.OrderRequestDto;
-import com.ideas2it.groceryshop.dto.OrderResponseDto;
 import com.ideas2it.groceryshop.dto.SuccessResponseDto;
 import com.ideas2it.groceryshop.exception.NotFoundException;
 import com.ideas2it.groceryshop.service.OrderService;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
-import static org.assertj.core.internal.bytebuddy.matcher.ElementMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -50,10 +38,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @version 1.0
  * @since 18-11-2022
  */
-@RunWith(MockitoJUnitRunner.class)
-@SpringBootTest
+
+
+@WebMvcTest(controllers = OrderController.class)
+@ActiveProfiles("test")
 public class OrderTestController {
 
+    @Autowired
     private MockMvc mockmvc;
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -63,7 +54,7 @@ public class OrderTestController {
     @InjectMocks
     OrderController orderController;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         this.mockmvc = MockMvcBuilders.standaloneSetup(orderController).build();
@@ -90,13 +81,16 @@ public class OrderTestController {
      * @throws NotFoundException
      */
     @Test
-    public void buyNow() throws NotFoundException {
+    public void buyNow() throws Exception {
         SuccessResponseDto SuccessResponseDto = new SuccessResponseDto(200,
                 "Order Placed Successfully");
         OrderRequestDto orderRequestDto = new OrderRequestDto(5,
                 1,1);
-        when(orderService.buyNow(orderRequestDto)).thenReturn(SuccessResponseDto);
-        assertEquals(200, SuccessResponseDto.getStatusCode());
+        given(orderService.buyNow(orderRequestDto)).willReturn(SuccessResponseDto);
+        this.mockmvc.perform(post("/api/v1/user/orders/buyNow")
+                        .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(orderRequestDto)))
+                .andExpect(status().isOk());
     }
 
     /**
@@ -108,20 +102,20 @@ public class OrderTestController {
     public void viewAllActiveOrders() throws Exception {
         List<OrderDetailResponseDto> orderDetailsResponse = new ArrayList<>();
         orderDetailsResponse.add(new OrderDetailResponseDto(
-                "Fruits & Vegetables","Fruits",
-                "Apple", 2, 200f));
+                     "Fruits & Vegetables","Fruits",
+                      "Apple", 2, 200f));
         List<OrderResponseDto> userOrderResponse = new ArrayList<>();
         userOrderResponse.add(new OrderResponseDto(1,
-                new Date(2022/11/13), new Date(2022/11/15),
-                230f, 5,true,
-                orderDetailsResponse, false));
+                              new Date(2022/11/13), new Date(2022/11/15),
+                      230f, 5,true,
+                              orderDetailsResponse, false));
         Mockito.when(orderService.viewAllActiveOrders()).thenReturn(userOrderResponse);
         mockmvc.perform(MockMvcRequestBuilders
                         .get("/api/v1/user/orders/activeOrders")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userOrderResponse)))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
-                .andExpect((ResultMatcher) jsonPath("$[0].orderStatus", is(true)));
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].orderStatus").value("true"));
     }
 
     /**
@@ -139,7 +133,7 @@ public class OrderTestController {
         userOrderResponse.add(new OrderResponseDto(1, new Date(2022/11/13),
                 new Date(2022/11/15),230f, 5,false,
                 orderDetailsResponse, false));
-        when(orderService.viewAllActiveOrders()).thenReturn(userOrderResponse);
+        Mi(orderService.viewAllActiveOrders()).thenReturn(userOrderResponse);
         assertEquals(false, userOrderResponse.get(0).getOrderStatus());
     }
 

@@ -93,7 +93,9 @@ public class OrderController {
     @GetMapping("/activeOrders")
     public List<OrderResponseDto> viewAllActiveOrders() throws NotFoundException {
         logger.debug("Entered viewAllActiveOrders method in OrderController");
-       return orderService.viewAllActiveOrders();
+        List<OrderResponseDto> activeOrders = orderService.viewAllActiveOrders();
+        System.out.println("Hellllllooooo"+activeOrders);
+       return activeOrders;
     }
 
     /**
