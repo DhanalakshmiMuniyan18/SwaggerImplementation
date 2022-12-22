@@ -94,7 +94,6 @@ public class OrderController {
     public List<OrderResponseDto> viewAllActiveOrders() throws NotFoundException {
         logger.debug("Entered viewAllActiveOrders method in OrderController");
         List<OrderResponseDto> activeOrders = orderService.viewAllActiveOrders();
-        System.out.println("Hellllllooooo"+activeOrders);
        return activeOrders;
     }
 
@@ -159,6 +158,7 @@ public class OrderController {
     @PutMapping("/{orderId}/cancelOrder")
     public SuccessResponseDto cancelOrder(@PathVariable Integer orderId) throws NotFoundException {
         logger.debug("Entered cancelOrder method in OrderController");
+        System.out.println("hello"+orderId);
         return orderService.cancelOrderById(orderId);
     }
 
@@ -177,6 +177,7 @@ public class OrderController {
     public List<OrderDetailResponseDto> viewOrderByProductId(@PathVariable Integer productId)
                                                               throws NotFoundException {
         logger.debug("Entered viewOrderByProductId method in OrderController");
+        System.out.println(productId);
         return orderService.viewOrdersByProductId(productId);
     }
 

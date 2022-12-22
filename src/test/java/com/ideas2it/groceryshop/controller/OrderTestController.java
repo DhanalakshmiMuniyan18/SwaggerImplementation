@@ -6,27 +6,33 @@
 package com.ideas2it.groceryshop.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import com.ideas2it.groceryshop.dto.OrderDetailResponseDto;
 import com.ideas2it.groceryshop.dto.OrderRequestDto;
+import com.ideas2it.groceryshop.dto.OrderResponseDto;
 import com.ideas2it.groceryshop.dto.SuccessResponseDto;
 import com.ideas2it.groceryshop.exception.NotFoundException;
 import com.ideas2it.groceryshop.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
-import static org.mockito.BDDMockito.given;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -39,18 +45,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 18-11-2022
  */
 
-
-@WebMvcTest(controllers = OrderController.class)
-@ActiveProfiles("test")
+@SpringBootTest
 public class OrderTestController {
 
-    @Autowired
     private MockMvc mockmvc;
 
     ObjectMapper objectMapper = new ObjectMapper();
-    ObjectWriter objectWriter = objectMapper.writer();
-    @Mock
-    OrderService orderService;
+    private final OrderService orderService = mock(OrderService.class);
     @InjectMocks
     OrderController orderController;
 
@@ -66,13 +67,17 @@ public class OrderTestController {
      * @throws NotFoundException
      */
     @Test
-    public void placeOrder() throws NotFoundException {
+    public void placeOrder() throws Exception {
         SuccessResponseDto SuccessResponseDto = new SuccessResponseDto(200,
                 "Order Placed Successfully");
         OrderRequestDto orderRequestDto = new OrderRequestDto();
         orderRequestDto.setAddressId(1);
          when(orderService.placeOrder(orderRequestDto)).thenReturn(SuccessResponseDto);
-         assertEquals(200, SuccessResponseDto.getStatusCode());
+        mockmvc.perform(MockMvcRequestBuilders
+                        .post("/api/v1/user/orders/placeOrder")
+                        .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(orderRequestDto)))
+                .andExpect(status().isOk());
     }
 
     /**
@@ -86,10 +91,9 @@ public class OrderTestController {
                 "Order Placed Successfully");
         OrderRequestDto orderRequestDto = new OrderRequestDto(5,
                 1,1);
-        given(orderService.buyNow(orderRequestDto)).willReturn(SuccessResponseDto);
+        when(orderService.buyNow(orderRequestDto)).thenReturn(SuccessResponseDto);
         this.mockmvc.perform(post("/api/v1/user/orders/buyNow")
-                        .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(orderRequestDto)))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
@@ -109,13 +113,12 @@ public class OrderTestController {
                               new Date(2022/11/13), new Date(2022/11/15),
                       230f, 5,true,
                               orderDetailsResponse, false));
-        Mockito.when(orderService.viewAllActiveOrders()).thenReturn(userOrderResponse);
+        when(orderService.viewAllActiveOrders()).thenReturn(userOrderResponse);
         mockmvc.perform(MockMvcRequestBuilders
                         .get("/api/v1/user/orders/activeOrders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userOrderResponse)))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].orderStatus").value("true"));
+                .andExpect(jsonPath("$[0].orderStatus", is(true)));
     }
 
     /**
@@ -124,7 +127,7 @@ public class OrderTestController {
      * @throws NotFoundException
      */
     @Test
-    public void viewAllCancelledOrders() throws NotFoundException {
+    public void viewAllCancelledOrders() throws Exception {
         List<OrderDetailResponseDto> orderDetailsResponse = new ArrayList<>();
         orderDetailsResponse.add(new OrderDetailResponseDto(
                 "Fruits & Vegetables","Fruits",
@@ -133,8 +136,12 @@ public class OrderTestController {
         userOrderResponse.add(new OrderResponseDto(1, new Date(2022/11/13),
                 new Date(2022/11/15),230f, 5,false,
                 orderDetailsResponse, false));
-        Mi(orderService.viewAllActiveOrders()).thenReturn(userOrderResponse);
-        assertEquals(false, userOrderResponse.get(0).getOrderStatus());
+        when(orderService.viewAllCancelledOrders()).thenReturn(userOrderResponse);
+        mockmvc.perform(MockMvcRequestBuilders
+                        .get("/api/v1/user/orders/cancelledOrders")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].orderStatus", is(false)));
     }
 
     /**
@@ -143,17 +150,20 @@ public class OrderTestController {
      * @throws NotFoundException
      */
     @Test
-    public void viewOrderById() throws NotFoundException {
+    public void viewOrderById() throws Exception {
         Integer orderId = 1;
-        List<OrderDetailResponseDto> orderDetailsResponse = new ArrayList<>();
-        orderDetailsResponse.add(new OrderDetailResponseDto(
-                "Fruits & Vegetables","Fruits",
-                "Apple", 2, 200f));
+        List<OrderDetailResponseDto> orderDetailsResponse = Collections.singletonList
+                (new OrderDetailResponseDto("Fruits & Vegetables",
+                        "Fruits","Apple", 2, 200f));
         OrderResponseDto orderResponseDto = new OrderResponseDto(1,
                 new Date(2022/11/13), new Date(2022/11/15),
                 230f, 5,true,
                 orderDetailsResponse, false);
         when(orderService.viewOrderById(orderId)).thenReturn(orderResponseDto);
+        mockmvc.perform(MockMvcRequestBuilders.get("/api/v1/user/orders/{orderId}",
+                                orderId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     /**
@@ -162,18 +172,20 @@ public class OrderTestController {
      * @throws NotFoundException
      */
     @Test
-    public void viewOrderByUserId() throws NotFoundException {
-        List<OrderDetailResponseDto> orderDetailsResponse = new ArrayList<>();
-        orderDetailsResponse.add(new OrderDetailResponseDto(
-                "Fruits & Vegetables","Fruits",
-                "Apple", 2, 200f));
-        List<OrderResponseDto> userOrderResponse = new ArrayList<>();
-        userOrderResponse.add(new OrderResponseDto(1, new Date(2022/11/13),
-                new Date(2022/11/15),230f, 5,true,
-                orderDetailsResponse, false));
+    public void viewOrderByUserId() throws Exception {
+        List<OrderDetailResponseDto> orderDetailsResponse = Collections.singletonList
+                (new OrderDetailResponseDto("Fruits & Vegetables",
+                        "Fruits","Apple",
+                        2, 200f));
+        List<OrderResponseDto> userOrderResponse = Collections.singletonList(new OrderResponseDto
+                (1, new Date(2022/11/13), new Date(2022/11/15),230f,
+                        5,true, orderDetailsResponse, false));
         Integer userId = 1;
         when(orderService.viewOrderByUserId(userId)).thenReturn(userOrderResponse);
-        assertEquals(userId, userOrderResponse.get(0).getUserId());
+        mockmvc.perform(MockMvcRequestBuilders.get("/api/v1/user/orders/{userId}",
+                                userOrderResponse.get(0).getUserId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     /**
@@ -182,21 +194,29 @@ public class OrderTestController {
      * @throws NotFoundException
      */
     @Test
-    public void cancelOrder() throws NotFoundException {
+    public void cancelOrder() throws Exception {
         Integer orderId = 1;
         SuccessResponseDto SuccessResponseDto = new SuccessResponseDto(200,
                 "Order Cancelled Successfully");
         when(orderService.cancelOrderById(orderId)).thenReturn(SuccessResponseDto);
-        assertEquals(200,SuccessResponseDto.getStatusCode());
+        mockmvc.perform(MockMvcRequestBuilders.put(
+                "/api/v1/user/orders/{orderId}/cancelOrder",
+                orderId))
+                .andExpect(status().isOk());
     }
 
     @Test
-    public void viewOrderByProductId() throws NotFoundException {
+    public void viewOrderByProductId() throws Exception {
         Integer productId = 1;
-        List<OrderDetailResponseDto> orderDetailsResponse = new ArrayList<>();
-        orderDetailsResponse.add(new OrderDetailResponseDto("Fruits & Vegetables",
+        List<OrderDetailResponseDto> orderDetailsResponse = Collections.singletonList
+                (new OrderDetailResponseDto("Fruits & Vegetables",
                 "Fruits", "Apple", 2, 200f));
+
         when(orderService.viewOrdersByProductId(productId)).thenReturn(orderDetailsResponse);
+        mockmvc.perform(MockMvcRequestBuilders.get(
+                "/api/v1/user/orders/{productId}", productId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     /**
@@ -205,18 +225,23 @@ public class OrderTestController {
      * @throws NotFoundException
      */
     @Test
-    public void viewOrdersByDate() throws NotFoundException {
-        Date date = new Date(2022/11/13);
-        List<OrderDetailResponseDto> orderDetailsResponse = new ArrayList<>();
-        orderDetailsResponse.add(new OrderDetailResponseDto(
+    public void viewOrdersByDate() throws Exception {
+        List<OrderDetailResponseDto> orderDetailsResponse = Collections.singletonList
+                (new OrderDetailResponseDto(
                 "Fruits & Vegetables","Fruits",
                 "Apple", 2, 200f));
         List<OrderResponseDto> userOrderResponse = new ArrayList<>();
         userOrderResponse.add(new OrderResponseDto(1, new Date(2022/11/13),
-                new Date(2022/11/15),230f, 5, true,
+                new Date(2022/12/12),230f, 5, true,
                 orderDetailsResponse, true));
-        when(orderService.viewOrdersByDate(date)).thenReturn(userOrderResponse);
-        assertEquals(date, userOrderResponse.get(0).getOrderedDate());
+        when(orderService.viewOrdersByDate(new Date("2022/12/12"))).
+                thenReturn(userOrderResponse);
+        mockmvc.perform(MockMvcRequestBuilders.get(
+                "/api/v1/user/orders/date/{date1}",
+                userOrderResponse.get(0).getOrderedDate())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].orderedDate",
+                        is(userOrderResponse.get(0).getOrderedDate())));
     }
 
     /**
@@ -226,19 +251,25 @@ public class OrderTestController {
      * @throws ParseException
      */
     @Test
-    public void viewOrdersByIdAndDate() throws NotFoundException, ParseException {
+    public void viewOrdersByIdAndDate() throws Exception, ParseException {
         Integer userId = 1;
         Date date = new Date(2022/11/13);
-        List<OrderDetailResponseDto> orderDetailsResponse = new ArrayList<>();
-        orderDetailsResponse.add(new OrderDetailResponseDto(
+        List<OrderDetailResponseDto> orderDetailsResponse = Collections.singletonList(
+                new OrderDetailResponseDto(
                 "Fruits & Vegetables","Fruits",
                 "Apple", 2, 200f));
-        List<OrderResponseDto> userOrderResponse = new ArrayList<>();
-        userOrderResponse.add(new OrderResponseDto(1, new Date(2022/11/13),
-                new Date(2022/11/15),230f, 5, true,
-                orderDetailsResponse, false));
-        when(orderService.viewOrdersByIdAndDate(date, userId)).thenReturn(userOrderResponse);
-        assertEquals(userId, userOrderResponse.get(0).getUserId());
+        List<OrderResponseDto> userOrderResponse = Collections.singletonList
+                (new OrderResponseDto(1, date, date,
+                        230f,5,
+                        true, orderDetailsResponse, false));
+        System.out.println(userOrderResponse);
+        when(orderService.viewOrdersByIdAndDate(date, userId))
+                .thenReturn(userOrderResponse);
+        mockmvc.perform(MockMvcRequestBuilders.get
+                                ("/date/{date}/user/{userId}",
+                        ("2022/11/13"), userId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
 }
