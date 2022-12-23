@@ -32,7 +32,6 @@ public class ProductMapper {
         product.setUnit(productRequestDto.getUnit());
         product.setPerHead(productRequestDto.getPerHead());
         product.setName(productRequestDto.getName());
-        product.setImage(productRequestDto.getImage());
         product.setPrice(productRequestDto.getPrice());
         return product;
     }
@@ -50,7 +49,6 @@ public class ProductMapper {
         productResponseDto.setUnit(product.getUnit());
         productResponseDto.setPerHead(product.getPerHead());
         productResponseDto.setName(product.getName());
-        productResponseDto.setImage(product.getImage());
         productResponseDto.setPrice(product.getPrice());
         productResponseDto.setCategoryName(product.getSubCategory().getCategory().getName());
         productResponseDto.setSubCategoryName(product.getSubCategory().getName());

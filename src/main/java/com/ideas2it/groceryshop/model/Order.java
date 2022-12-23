@@ -75,7 +75,7 @@ public class Order extends Audit {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User user ;
+    private User user;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "delivery_id")
     private OrderDelivery orderDelivery;
