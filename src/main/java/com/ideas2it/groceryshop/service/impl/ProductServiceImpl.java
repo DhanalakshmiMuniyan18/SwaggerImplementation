@@ -86,7 +86,7 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductResponseDto> getProducts() throws NotFoundException {
         logger.debug("Entered into getProducts method in product service");
         List<Product> productList = productRepository.findAllAndIsActive(true);
-        if (productList.isEmpty()) {
+        if (!productList.isEmpty()) {
             throw new NotFoundException("Products not found");
         }
         List<ProductResponseDto> productResponse = new ArrayList<>();
@@ -216,7 +216,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public List<ProductResponseDto> getProductsByLocation(Integer locationId) throws NotFoundException {
-        logger.debug("Entered into getProductsLocation method in product service");
+//        logger.debug("Entered into getProductsLocation method in product service");
         List<Product> products = productRepository.findAllAndIsActive(true);
         if (products.isEmpty()) {
             throw new NotFoundException("No products found");
@@ -234,7 +234,7 @@ public class ProductServiceImpl implements ProductService {
             productResponseDto.setIsStockAvailable(isStockAvailable);
             productResponses.add(productResponseDto);
         }
-        logger.debug("The getProductsByLocation method successfully executed");
+       // logger.debug("The getProductsByLocation method successfully executed");
         return productResponses;
     }
 

@@ -98,7 +98,7 @@ public class AddressServiceImpl implements AddressService {
         logger.debug("Entered deleteAddressById method");
         Optional<Address> address =
                 addressRepository.findByIsActiveAndId(true, id);
-        if(address.isEmpty()) {
+        if(!address.isPresent()) {
             logger.debug("Address not found");
             throw new NotFoundException("Address not found");
         }
@@ -117,7 +117,7 @@ public class AddressServiceImpl implements AddressService {
         Optional<Address> address =
                 addressRepository.findByIsActiveAndIdAndUserId(true,
                 id, userService.getCurrentUser().getId());
-        if(address.isEmpty()) {
+        if(!address.isPresent()) {
             logger.debug("Address not found");
             throw new NotFoundException("Address not found");
         }

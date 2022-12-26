@@ -148,7 +148,7 @@ public class OrderServiceImpl implements OrderService {
         Optional<Address> address = addressService.getAddressByAddressId(orderRequest.getAddressId());
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, 3);
-        if(address.isEmpty()) {
+        if(!address.isPresent()) {
             logger.debug("Address not found");
             throw new NotFoundException("Address not found");
         }
@@ -165,7 +165,7 @@ public class OrderServiceImpl implements OrderService {
         logger.debug("Entered viewOrderById method in OrderServiceImpl");
         Integer userId = userService.getCurrentUser().getId();
         Optional<Order> order = orderRepository.findByIdAndUserId(orderId, userId);
-        if (order.isEmpty()) {
+        if (!order.isPresent()) {
             logger.debug("No record found");
             throw new NotFoundException("No record found");
         }

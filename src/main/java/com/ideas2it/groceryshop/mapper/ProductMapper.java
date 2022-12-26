@@ -5,9 +5,14 @@
  */
 package com.ideas2it.groceryshop.mapper;
 
+import com.ideas2it.groceryshop.dto.OrderResponseDto;
 import com.ideas2it.groceryshop.dto.ProductRequestDto;
 import com.ideas2it.groceryshop.dto.ProductResponseDto;
+import com.ideas2it.groceryshop.model.Order;
 import com.ideas2it.groceryshop.model.Product;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -54,5 +59,13 @@ public class ProductMapper {
         productResponseDto.setSubCategoryName(product.getSubCategory().getName());
         productResponseDto.setIsStockAvailable(true);
         return productResponseDto;
+    }
+
+    public static List<ProductResponseDto> toOrdersDtoList(List<Product> products) {
+        List<ProductResponseDto> productResponseDtos = new ArrayList<>();
+        for(Product product: products) {
+            productResponseDtos.add(toProductDto(product));
+        }
+        return productResponseDtos;
     }
 }

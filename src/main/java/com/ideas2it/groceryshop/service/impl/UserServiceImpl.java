@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public UserResponseDto getUserById(Integer id) throws NotFoundException {
         logger.debug("Entered getUserById method");
         Optional<User> user = userRepository.findByIsActiveAndId(true, id);
-        if(user.isEmpty()) {
+        if(!user.isPresent()) {
             logger.debug("Uses not found");
             throw new NotFoundException("User not found");
         }
@@ -141,7 +141,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public SuccessResponseDto deleteUserById(Integer id) throws NotFoundException {
         logger.debug("Entered deleteUserById method");
         Optional<User> user = userRepository.findByIsActiveAndId(true, id);
-        if(user.isEmpty()) {
+        if(!user.isPresent()) {
             logger.debug("User not found");
             throw new NotFoundException("User not found");
         }
@@ -158,7 +158,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             throws UsernameNotFoundException {
         logger.debug("Entered loadUserByUsername method");
         Optional<User> user = userRepository.findByUserNameAndIsActive(username, true);
-        if (user.isEmpty()) {
+        if (!user.isPresent()) {
             logger.debug("Username Not Found");
             throw new UsernameNotFoundException("Username Not Found");
         }

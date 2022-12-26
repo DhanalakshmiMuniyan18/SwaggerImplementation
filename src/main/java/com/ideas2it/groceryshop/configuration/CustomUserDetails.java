@@ -5,11 +5,14 @@
  */
 package com.ideas2it.groceryshop.configuration;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import lombok.Getter;
 
+import org.apache.el.stream.Stream;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,7 +39,9 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(user.getRole().getName()));
+        List<SimpleGrantedAuthority> collections = new ArrayList<>();
+        collections.add(new SimpleGrantedAuthority(user.getRole().getName()));
+        return Collections.unmodifiableCollection(collections);
     }
 
     @Override

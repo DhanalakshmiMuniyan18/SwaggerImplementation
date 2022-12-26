@@ -23,12 +23,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -68,16 +70,17 @@ public class OrderTestController {
      */
     @Test
     public void placeOrder() throws Exception {
-        SuccessResponseDto SuccessResponseDto = new SuccessResponseDto(200,
+        SuccessResponseDto successResponseDto = new SuccessResponseDto(200,
                 "Order Placed Successfully");
         OrderRequestDto orderRequestDto = new OrderRequestDto();
         orderRequestDto.setAddressId(1);
-         when(orderService.placeOrder(orderRequestDto)).thenReturn(SuccessResponseDto);
+         when(orderService.placeOrder(orderRequestDto)).thenReturn(successResponseDto);
         mockmvc.perform(MockMvcRequestBuilders
                         .post("/api/v1/user/orders/placeOrder")
                         .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(orderRequestDto)))
                 .andExpect(status().isOk());
+        assertEquals(200,successResponseDto.getStatusCode());
     }
 
     /**
@@ -87,14 +90,17 @@ public class OrderTestController {
      */
     @Test
     public void buyNow() throws Exception {
-        SuccessResponseDto SuccessResponseDto = new SuccessResponseDto(200,
+        SuccessResponseDto successResponseDto = new SuccessResponseDto(200,
                 "Order Placed Successfully");
         OrderRequestDto orderRequestDto = new OrderRequestDto(5,
                 1,1);
-        when(orderService.buyNow(orderRequestDto)).thenReturn(SuccessResponseDto);
+        when(orderService.buyNow(orderRequestDto)).thenReturn(successResponseDto);
         this.mockmvc.perform(post("/api/v1/user/orders/buyNow")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(orderRequestDto)))
                 .andExpect(status().isOk());
+        assertEquals(200, successResponseDto.getStatusCode());
+        assertEquals(1,orderRequestDto.getAddressId());
     }
 
     /**
@@ -119,6 +125,8 @@ public class OrderTestController {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].orderStatus", is(true)));
+        assertEquals(1, userOrderResponse.get(0).getUserId());
+        assertEquals(true, userOrderResponse.get(0).getOrderStatus());
     }
 
     /**
@@ -142,6 +150,7 @@ public class OrderTestController {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].orderStatus", is(false)));
+        assertEquals(false, userOrderResponse.get(0).getOrderStatus());
     }
 
     /**
@@ -164,6 +173,7 @@ public class OrderTestController {
                                 orderId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+        assertEquals(1, orderResponseDto.getUserId());
     }
 
     /**
@@ -186,6 +196,7 @@ public class OrderTestController {
                                 userOrderResponse.get(0).getUserId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+        assertEquals(userId, userOrderResponse.get(0).getUserId());
     }
 
     /**
@@ -196,13 +207,14 @@ public class OrderTestController {
     @Test
     public void cancelOrder() throws Exception {
         Integer orderId = 1;
-        SuccessResponseDto SuccessResponseDto = new SuccessResponseDto(200,
+        SuccessResponseDto successResponseDto = new SuccessResponseDto(200,
                 "Order Cancelled Successfully");
-        when(orderService.cancelOrderById(orderId)).thenReturn(SuccessResponseDto);
+        when(orderService.cancelOrderById(orderId)).thenReturn(successResponseDto);
         mockmvc.perform(MockMvcRequestBuilders.put(
                 "/api/v1/user/orders/{orderId}/cancelOrder",
                 orderId))
                 .andExpect(status().isOk());
+        assertEquals("Order Cancelled Successfully", successResponseDto.getMessage());
     }
 
     @Test
@@ -217,6 +229,7 @@ public class OrderTestController {
                 "/api/v1/user/orders/{productId}", productId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+        assertEquals("Apple", orderDetailsResponse.get(0).getProductName());
     }
 
     /**
@@ -226,6 +239,7 @@ public class OrderTestController {
      */
     @Test
     public void viewOrdersByDate() throws Exception {
+        Date date = null;
         List<OrderDetailResponseDto> orderDetailsResponse = Collections.singletonList
                 (new OrderDetailResponseDto(
                 "Fruits & Vegetables","Fruits",
@@ -234,14 +248,19 @@ public class OrderTestController {
         userOrderResponse.add(new OrderResponseDto(1, new Date(2022/11/13),
                 new Date(2022/12/12),230f, 5, true,
                 orderDetailsResponse, true));
-        when(orderService.viewOrdersByDate(new Date("2022/12/12"))).
-                thenReturn(userOrderResponse);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            date = simpleDateFormat.parse("2022/12/12");
+        } catch(ParseException parseException) {
+            parseException.getMessage();
+        }
+        when(orderService.viewOrdersByDate(date)).thenReturn(userOrderResponse);
         mockmvc.perform(MockMvcRequestBuilders.get(
                 "/api/v1/user/orders/date/{date1}",
                 userOrderResponse.get(0).getOrderedDate())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].orderedDate",
-                        is(userOrderResponse.get(0).getOrderedDate())));
+                .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(date)))
+                .andExpect(status().isOk());
     }
 
     /**

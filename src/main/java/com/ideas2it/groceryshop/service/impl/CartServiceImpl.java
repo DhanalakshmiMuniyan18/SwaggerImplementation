@@ -254,7 +254,7 @@ public class CartServiceImpl implements CartService {
         logger.debug("Entered getCartByCartId method in cartServiceImpl");
         User user = userService.getCurrentUser();
         Optional<Cart> cart = cartRepository.findByUserIdAndIsActive(user.getId(), true);
-        if (cart.isEmpty()) {
+        if (!cart.isPresent()) {
             return null;
         }
         return cart.get();

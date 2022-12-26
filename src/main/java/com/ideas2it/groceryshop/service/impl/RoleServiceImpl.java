@@ -71,7 +71,7 @@ public class RoleServiceImpl implements RoleService {
         logger.debug("Entered updateRole method");
         Optional<Role> role = roleRepository.findByIsActiveAndName(true,
                 RoleMapper.roleDtoToRole(roleUpdateRequestDto.getNameToUpdate()).getName());
-        if(role.isEmpty()) {
+        if(!role.isPresent()) {
             logger.debug("Role not found");
             throw new NotFoundException("Role not found");
         }
@@ -91,7 +91,7 @@ public class RoleServiceImpl implements RoleService {
         logger.debug("Entered deleteRole method");
         Optional<Role> role = roleRepository.findByIsActiveAndName
                 (true, roleRequestDto.getName());
-        if(role.isEmpty()) {
+        if(!role.isPresent()) {
             logger.debug("Role not found");
             throw new NotFoundException("Role not found");
         }

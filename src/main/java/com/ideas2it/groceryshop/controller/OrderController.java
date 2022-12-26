@@ -158,7 +158,6 @@ public class OrderController {
     @PutMapping("/{orderId}/cancelOrder")
     public SuccessResponseDto cancelOrder(@PathVariable Integer orderId) throws NotFoundException {
         logger.debug("Entered cancelOrder method in OrderController");
-        System.out.println("hello"+orderId);
         return orderService.cancelOrderById(orderId);
     }
 
@@ -196,7 +195,7 @@ public class OrderController {
     @GetMapping("/date/{orderedDate}")
     public List<OrderResponseDto> viewOrdersByDate(@PathVariable String orderedDate)
                                                    throws NotFoundException, ParseException {
-        logger.debug("Entered viewOrdersByDate method in OrderController");
+        logger.debug("Entered viewOrdersByDate method in OrderController"+orderedDate);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = simpleDateFormat.parse(orderedDate);
         return orderService.viewOrdersByDate(date);
